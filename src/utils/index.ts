@@ -1,30 +1,23 @@
-const crypto = require('crypto');
+import crypto from 'crypto';
+
 const podRole = process.env.POD_ROLE;
-
-
-const urlWhiteList = {
-
-}
+const urlWhiteList = {};
 
 // 不进入 url mobile 缓存页面
-const cacheUrlWhiteList = [
-
-]
-
-
+const cacheUrlWhiteList = [];
 
 /**
-  * @description 验证url正确性
-  * @param {string} 
-  * @returns {boolean}  
-*/
+ * @description 验证url正确性
+ * @param {string}
+ * @returns {boolean}
+ */
 const isValidPageUrl = (pageUrl) => /^https?:\/\/.+\..+$/.test(pageUrl);
 
 /**
-  * @description 去除 url ？#及后面的参数
-  * @param {string} 
-  * @returns {string}  
-*/
+ * @description 去除 url ？#及后面的参数
+ * @param {string}
+ * @returns {string}
+ */
 const urlExcludeArgs = (url) => {
   let result = url;
   const searchIndex = url.indexOf('?');
@@ -39,22 +32,22 @@ const urlExcludeArgs = (url) => {
 };
 
 /**
-  * @description 获取 url ?后的参数
-  * @param {string} 
-  * @returns {array}  
-*/
+ * @description 获取 url ?后的参数
+ * @param {string}
+ * @returns {array}
+ */
 const getUrlParam = (href) => {
   let name, value;
   let str = href;
-  let num = str.indexOf("?");
+  let num = str.indexOf('?');
 
   str = str.substr(num + 1);
 
-  let arr = str.split("&");
-  let json = {};
+  const arr = str.split('&');
+  const json = {};
 
   for (let i = 0; i < arr.length; i++) {
-    num = arr[i].indexOf("=");
+    num = arr[i].indexOf('=');
     if (num > 0) {
       name = arr[i].substring(0, num);
       value = arr[i].substr(num + 1);
@@ -63,14 +56,14 @@ const getUrlParam = (href) => {
   }
 
   return json;
-}
+};
 
 /**
-  * @description 根据白名单排除无用的参数
-  * @param {string} url 
-  * @param {array} whiteList 参数白名单
-  * @returns {string} url 
-*/
+ * @description 根据白名单排除无用的参数
+ * @param {string} url
+ * @param {array} whiteList 参数白名单
+ * @returns {string} url
+ */
 const urlExcludeForWhiteList = (url, whiteList = []) => {
   if (url.indexOf('?') === -1) return url;
 
@@ -80,9 +73,9 @@ const urlExcludeForWhiteList = (url, whiteList = []) => {
   try {
     for (let i = 0; i < whiteList.length; i++) {
       if (params?.[whiteList[i]] !== undefined) {
-        let prefix = cleanUrl.indexOf('?') === -1 ? '?' : '&';
+        const prefix = cleanUrl.indexOf('?') === -1 ? '?' : '&';
 
-        cleanUrl += `${prefix}${whiteList[i]}=${params?.[whiteList[i]]}`
+        cleanUrl += `${prefix}${whiteList[i]}=${params?.[whiteList[i]]}`;
       }
     }
   } catch (e) {
@@ -90,13 +83,13 @@ const urlExcludeForWhiteList = (url, whiteList = []) => {
   }
 
   return cleanUrl;
-}
+};
 
 /**
-  * @description 根据 url白名单 过滤生成 url
-  * @param {string} url 
-  * @returns {string} url 
-*/
+ * @description 根据 url白名单 过滤生成 url
+ * @param {string} url
+ * @returns {string} url
+ */
 function formatUrlForWhiteList(url) {
   if (!url) return url;
 
@@ -113,73 +106,74 @@ function formatUrlForWhiteList(url) {
 }
 
 /**
-  * @description 根据url生成唯一的md5key, 用于s3 file key
-  * @param {string} orgUrl 不带https的url 
-  * @param {string} ctx app context
-  * @returns {string} url 'url/md5key'
-*/
-const genCacheKey = (orgUrl, ctx) => {
+ * @description 根据url生成唯一的md5key, 用于s3 file key
+ * @param {string} orgUrl 不带https的url
+ * @param {string} ctx app context
+ * @returns {string} url 'url/md5key'
+ */
+const getCacheKey = (orgUrl, ctx) => {
   let url = null;
 
   try {
     orgUrl = formatUrlForWhiteList(orgUrl);
     url = new URL(`https://${orgUrl}`);
   } catch (e) {
-    return null
+    return null;
   }
-  
+
   const md5 = crypto.createHash('md5');
-  const urlResult = getDevice(ctx.request.headers["user-agent"]) === 'mobile' ?
-                      (url + 'mobile').toString().replace(/[?&]*force=1/, '') :
-                      url.toString().replace(/[?&]*force=1/, '');
+  const urlResult =
+    getDevice(ctx.request.headers['user-agent']) === 'mobile'
+      ? (url + 'mobile').toString().replace(/[?&]*force=1/, '')
+      : url.toString().replace(/[?&]*force=1/, '');
 
   const key = md5.update(urlResult).digest('hex');
 
-  return `${url.hostname}/${key}`
-}
+  return `${url.hostname}/${key}`;
+};
 
 const getWorkerCunsumeKey = (prefix = 'seo-queue', env) => {
-  return `${prefix}-${env}`
-}
+  return `${prefix}-${env}`;
+};
 
 const getPodKey = (total = 5) => {
   return Math.floor(Math.random() * total + 1);
-}
+};
 
 /**
-  * @description 区分触屏和pc
-  * @param {string} ua request user-agent
-  * @returns {string} mobile or desktop
-*/
+ * @description 区分触屏和pc
+ * @param {string} ua request user-agent
+ * @returns {string} mobile or desktop
+ */
 function getDevice(ua) {
-  var deviceAgent = ua.toLowerCase();
-  var agentID = deviceAgent.match(/(iphone|ipod|ipad|android)/);
+  const deviceAgent = ua.toLowerCase();
+  const agentID = deviceAgent.match(/(iphone|ipod|ipad|android)/);
   if (agentID) {
-    return "mobile";
+    return 'mobile';
   } else {
-    return "desktop";
+    return 'desktop';
   }
 }
 
 /**
-  * @description 发起 redis 消费队列
-  * @param {object} app egg app
-  * @param {string} key url md5 key
-  * @param {string} url
-*/
+ * @description 发起 redis 消费队列
+ * @param {object} app egg app
+ * @param {string} key url md5 key
+ * @param {string} url
+ */
 const createRedisQueue = (app, key, url) => {
   app.messenger.sendToAgent('add-redis-queue', {
     key,
-    url
+    url,
   });
-}
+};
 
-module.exports = {
+export {
   isValidPageUrl,
   urlExcludeArgs,
-  genCacheKey,
+  getCacheKey,
   getWorkerCunsumeKey,
   getPodKey,
   getDevice,
-  createRedisQueue
-}
+  createRedisQueue,
+};
