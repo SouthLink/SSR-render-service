@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>前端监控SDK</title>
+    <!-- <script src="./index.js"></script> -->
+</head>
+
+<body>
+    <div id="container">
+        <div class="content" style="width:600px;height:600px;word-wrap: break-word;background-color: rosybrown;overflow: hidden;">
+            <button id="clickBtn" onclick="clickMe()" style="margin: 0 auto; display: block; margin-top: 20px;">点我触发错误收集</button>
+        </div>
+    </div>
+    <script>
+        function clickMe() {
+            throw new Error('111111');
+        }
+        
+    </script>
+</body>
+
+</html>

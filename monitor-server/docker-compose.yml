@@ -1,0 +1,43 @@
+version: '2'
+services: 
+  db:
+    image: mariadb
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: "123456"
+      # MYSQL_DATABASE: "monitordb"
+      MYSQL_USER: "tang"
+      MYSQL_PASSWORD: "123456"
+    volumes:
+      - ./db/data:/var/lib/mysql
+      - ./db/initdb.d:/docker-entrypoint-initdb.d
+    ports:
+      - "3306:3306"
+  node:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    links:
+      - db:db
+    depends_on:
+      - db
+    volumes:
+      - .:/www
+  web:
+    build: .
+    depends_on:
+      - node  
+    ports:
+      - "8080:80"
+    command: 
+      - sh
+      - -c
+      - 'nginx && npm run serve'
+  #   volumes: 
+  #     - "./monitor-front/nginx/nginx.conf:/etc/nginx/conf.d"
+  #     - "./image/node/pubic:/www/web"
+volumes:
+  dbdata: 
+    driver: local
